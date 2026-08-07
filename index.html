@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <title>Calculateur de recharge VE</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #16a34a;
+      --accent-soft: #dcfce7;
+      --border: #e5e7eb;
+      --warning: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 18px;
+    }
+
+    .app {
+      width: min(720px, 100%);
+      margin: 0 auto;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #111827, #1f2937);
+      color: white;
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 18px;
+      box-shadow: 0 12px 28px rgba(0,0,0,.12);
+    }
+
+    .hero h1 {
+      margin: 0 0 6px;
+      font-size: 1.75rem;
+    }
+
+    .hero p {
+      margin: 0;
+      opacity: .8;
+    }
+
+    .battery {
+      display: inline-flex;
+      margin-top: 18px;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.1);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 14px rgba(0,0,0,.04);
+    }
+
+    .card h2 {
+      margin: 0 0 18px;
+      font-size: 1.1rem;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .row:last-child { margin-bottom: 0; }
+
+    .label {
+      font-weight: 600;
+    }
+
+    .value {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .slider-block {
+      margin-bottom: 22px;
+    }
+
+    .slider-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .slider-head {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    select,
+    input[type="number"] {
+      width: 100%;
+      font-size: 1rem;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      color: var(--text);
+    }
+
+    .tariffs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .tariff-btn {
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 14px;
+      padding: 14px 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .tariff-btn small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .tariff-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: #166534;
+    }
+
+    .custom-wrap {
+      margin-top: 12px;
+      display: none;
+    }
+
+    .results {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .result {
+      background: #f9fafb;
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .result .big {
+      font-size: 1.45rem;
+      font-weight: 800;
+      margin-top: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .result .caption {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .result.highlight {
+      background: var(--accent-soft);
+    }
+
+    .error {
+      display: none;
+      margin-top: 12px;
+      color: var(--warning);
+      font-weight: 600;
+      font-size: .92rem;
+    }
+
+    .note {
+      color: var(--muted);
+      text-align: center;
+      font-size: .85rem;
+      line-height: 1.45;
+      padding: 4px 12px 24px;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      .hero { padding: 20px; border-radius: 20px; }
+      .hero h1 { font-size: 1.5rem; }
+      .tariffs { grid-template-columns: 1fr; }
+      .results { grid-template-columns: 1fr; }
+      .result { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <h1>⚡ Calculateur de recharge</h1>
+      <p>Estimez le temps et le prix d'une recharge de voiture électrique.</p>
+      <div class="battery">🔋 Batterie : <strong>77 kWh</strong></div>
+    </section>
+
+    <section class="card">
+      <h2>Niveaux de batterie</h2>
+
+      <div class="slider-block">
+        <div class="slider-head">
+          <span class="label">Niveau de départ</span>
+          <span class="value"><span id="startValue">20</span> %</span>
+        </div>
+        <input id="startLevel" type="range" min="0" max="100" value="20" step="1" />
+      </div>
+
+      <div class="slider-block">
+        <div class="slider-head">
+          <span class="label">Niveau de fin</span>
+          <span class="value"><span id="endValue">80</span> %</span>
+        </div>
+        <input id="endLevel" type="range" min="0" max="100" value="80" step="1" />
+      </div>
+
+      <div class="error" id="rangeError">Le niveau de fin doit être supérieur au niveau de départ.</div>
+    </section>
+
+    <section class="card">
+      <h2>Puissance de la borne</h2>
+      <select id="power">
+        <option value="2.3">2,3 kW</option>
+        <option value="3.7">3,7 kW</option>
+        <option value="4.5">4,5 kW</option>
+        <option value="5">5 kW</option>
+        <option value="5.5">5,5 kW</option>
+        <option value="6" selected>6 kW</option>
+        <option value="7.4">7,4 kW</option>
+        <option value="11">11 kW</option>
+        <option value="22">22 kW</option>
+        <option value="50">50 kW</option>
+        <option value="150">150 kW</option>
+      </select>
+    </section>
+
+    <section class="card">
+      <h2>Tarif de l'électricité</h2>
+      <div class="tariffs">
+        <button class="tariff-btn active" data-tariff="0.1579">
+          Heures creuses
+          <small>0,1579 €/kWh</small>
+        </button>
+
+        <button class="tariff-btn" data-tariff="0.2035">
+          Heures pleines
+          <small>0,2035 €/kWh</small>
+        </button>
+
+        <button class="tariff-btn" data-tariff="custom">
+          Autre prix
+          <small>Tarif personnalisé</small>
+        </button>
+      </div>
+
+      <div class="custom-wrap" id="customWrap">
+        <input id="customPrice" type="number" step="0.0001" min="0" value="0.1579" placeholder="Prix en €/kWh" />
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Résultat</h2>
+      <div class="results">
+        <div class="result">
+          <div class="caption">Énergie à ajouter</div>
+          <div class="big" id="energyResult">46,2 kWh</div>
+        </div>
+
+        <div class="result">
+          <div class="caption">Temps de recharge</div>
+          <div class="big" id="timeResult">7 h 42 min</div>
+        </div>
+
+        <div class="result highlight">
+          <div class="caption">Prix estimé</div>
+          <div class="big" id="costResult">7,30 €</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="note">
+      Calcul théorique basé sur une batterie de 77 kWh et une puissance de charge constante.
+      Les pertes électriques et la réduction éventuelle de puissance en fin de charge ne sont pas incluses.
+    </div>
+  </main>
+
+  <script>
+    const BATTERY = 77;
+
+    const startLevel = document.getElementById("startLevel");
+    const endLevel = document.getElementById("endLevel");
+    const startValue = document.getElementById("startValue");
+    const endValue = document.getElementById("endValue");
+    const power = document.getElementById("power");
+    const tariffButtons = document.querySelectorAll(".tariff-btn");
+    const customWrap = document.getElementById("customWrap");
+    const customPrice = document.getElementById("customPrice");
+    const energyResult = document.getElementById("energyResult");
+    const timeResult = document.getElementById("timeResult");
+    const costResult = document.getElementById("costResult");
+    const rangeError = document.getElementById("rangeError");
+
+    let selectedTariff = 0.1579;
+
+    function fr(value, decimals = 2) {
+      return value.toLocaleString("fr-FR", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    function getTariff() {
+      if (selectedTariff === "custom") {
+        return parseFloat(customPrice.value) || 0;
+      }
+      return Number(selectedTariff);
+    }
+
+    function formatTime(hoursDecimal) {
+      const totalMinutes = Math.round(hoursDecimal * 60);
+      const h = Math.floor(totalMinutes / 60);
+      const m = totalMinutes % 60;
+
+      if (h === 0) return `${m} min`;
+      if (m === 0) return `${h} h`;
+      return `${h} h ${String(m).padStart(2, "0")} min`;
+    }
+
+    function calculate() {
+      const start = Number(startLevel.value);
+      const end = Number(endLevel.value);
+      const chargingPower = Number(power.value);
+      const tariff = getTariff();
+
+      startValue.textContent = start;
+      endValue.textContent = end;
+
+      if (end <= start) {
+        rangeError.style.display = "block";
+        energyResult.textContent = "—";
+        timeResult.textContent = "—";
+        costResult.textContent = "—";
+        return;
+      }
+
+      rangeError.style.display = "none";
+
+      const energy = BATTERY * (end - start) / 100;
+      const time = energy / chargingPower;
+      const cost = energy * tariff;
+
+      energyResult.textContent = `${fr(energy, 1)} kWh`;
+      timeResult.textContent = formatTime(time);
+      costResult.textContent = `${fr(cost, 2)} €`;
+    }
+
+    startLevel.addEventListener("input", calculate);
+    endLevel.addEventListener("input", calculate);
+    power.addEventListener("change", calculate);
+    customPrice.addEventListener("input", calculate);
+
+    tariffButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        tariffButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        selectedTariff = btn.dataset.tariff;
+        customWrap.style.display = selectedTariff === "custom" ? "block" : "none";
+        calculate();
+      });
+    });
+
+    calculate();
+  </script>
+</body>
+</html>
