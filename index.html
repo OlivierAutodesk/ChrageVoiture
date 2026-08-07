@@ -24,26 +24,26 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: 18px;
+      padding: 8px;
     }
 
     .app {
-      width: min(720px, 100%);
+      width: min(430px, 100%);
       margin: 0 auto;
     }
 
     .hero {
       background: linear-gradient(135deg, #111827, #1f2937);
       color: white;
-      border-radius: 24px;
-      padding: 24px;
-      margin-bottom: 18px;
+      border-radius: 18px;
+      padding: 14px 16px;
+      margin-bottom: 4px;
       box-shadow: 0 12px 28px rgba(0,0,0,.12);
     }
 
     .hero h1 {
       margin: 0 0 6px;
-      font-size: 1.75rem;
+      font-size: 1.25rem;
     }
 
     .hero p {
@@ -53,10 +53,10 @@
 
     .battery {
       display: inline-flex;
-      margin-top: 18px;
+      margin-top: 8px;
       align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
+      gap: 6px;
+      padding: 6px 10px;
       border-radius: 999px;
       background: rgba(255,255,255,.1);
     }
@@ -64,15 +64,15 @@
     .card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 16px;
+      border-radius: 16px;
+      padding: 9px 10px;
+      margin-bottom: 4px;
       box-shadow: 0 4px 14px rgba(0,0,0,.04);
     }
 
     .card h2 {
-      margin: 0 0 18px;
-      font-size: 1.1rem;
+      margin: 0 0 10px;
+      font-size: 1rem;
     }
 
     .row {
@@ -100,7 +100,7 @@
     }
 
     .slider-block {
-      margin-bottom: 22px;
+      margin-bottom: 10px;
     }
 
     .slider-block:last-child {
@@ -110,14 +110,14 @@
     .slider-head {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
     select,
     input[type="number"] {
       width: 100%;
       font-size: 1rem;
-      padding: 12px 14px;
+      padding: 9px 10px;
       border: 1px solid var(--border);
       border-radius: 12px;
       background: white;
@@ -127,14 +127,14 @@
     .tariffs {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 6px;
     }
 
     .tariff-btn {
       border: 1px solid var(--border);
       background: white;
       border-radius: 14px;
-      padding: 14px 10px;
+      padding: 8px 6px;
       cursor: pointer;
       font-weight: 700;
     }
@@ -153,25 +153,25 @@
     }
 
     .custom-wrap {
-      margin-top: 12px;
+      margin-top: 6px;
       display: none;
     }
 
     .results {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+      gap: 6px;
     }
 
     .result {
       background: #f9fafb;
       border-radius: 16px;
-      padding: 16px;
+      padding: 10px;
       text-align: center;
     }
 
     .result .big {
-      font-size: 1.45rem;
+      font-size: 1.05rem;
       font-weight: 800;
       margin-top: 6px;
       font-variant-numeric: tabular-nums;
@@ -179,7 +179,7 @@
 
     .result .caption {
       color: var(--muted);
-      font-size: .9rem;
+      font-size: .78rem;
     }
 
     .result.highlight {
@@ -188,7 +188,7 @@
 
     .error {
       display: none;
-      margin-top: 12px;
+      margin-top: 6px;
       color: var(--warning);
       font-weight: 600;
       font-size: .92rem;
@@ -197,18 +197,37 @@
     .note {
       color: var(--muted);
       text-align: center;
-      font-size: .85rem;
-      line-height: 1.45;
-      padding: 4px 12px 24px;
+      font-size: .72rem;
+      line-height: 1.25;
+      padding: 0 8px 8px;
     }
 
     @media (max-width: 640px) {
-      body { padding: 12px; }
-      .hero { padding: 20px; border-radius: 20px; }
-      .hero h1 { font-size: 1.5rem; }
-      .tariffs { grid-template-columns: 1fr; }
-      .results { grid-template-columns: 1fr; }
-      .result { text-align: left; }
+      body {
+        padding: max(6px, env(safe-area-inset-top)) 6px max(6px, env(safe-area-inset-bottom));
+      }
+      .hero { padding: 12px 14px; border-radius: 16px; }
+      .hero h1 { font-size: 1.15rem; }
+      .hero p { font-size: .8rem; }
+      .battery { font-size: .82rem; }
+      .tariffs { grid-template-columns: repeat(3, 1fr); }
+      .tariff-btn { font-size: .78rem; }
+      .tariff-btn small { font-size: .68rem; }
+      .results { grid-template-columns: repeat(3, 1fr); }
+      .result { text-align: center; }
+      .card { padding: 10px 12px; }
+      .note { font-size: .68rem; }
+    }
+
+    @media (max-height: 740px) {
+      .hero p { display: none; }
+      .note { display: none; }
+      .hero { padding: 10px 12px; }
+      .card { padding: 9px 10px; margin-bottom: 6px; }
+      .card h2 { margin-bottom: 8px; }
+      .slider-block { margin-bottom: 8px; }
+      .result { padding: 8px 5px; }
+      .result .big { font-size: .98rem; }
     }
   </style>
 </head>
@@ -216,12 +235,12 @@
   <main class="app">
     <section class="hero">
       <h1>⚡ Calculateur de recharge</h1>
-      <p>Estimez le temps et le prix d'une recharge de voiture électrique.</p>
+      <p>Temps et coût de recharge</p>
       <div class="battery">🔋 Batterie : <strong>77 kWh</strong></div>
     </section>
 
     <section class="card">
-      <h2>Niveaux de batterie</h2>
+      <h2>Batterie</h2>
 
       <div class="slider-block">
         <div class="slider-head">
@@ -243,7 +262,7 @@
     </section>
 
     <section class="card">
-      <h2>Puissance de la borne</h2>
+      <h2>Puissance</h2>
       <select id="power">
         <option value="2.3">2,3 kW</option>
         <option value="3.7">3,7 kW</option>
@@ -260,7 +279,7 @@
     </section>
 
     <section class="card">
-      <h2>Tarif de l'électricité</h2>
+      <h2>Tarif</h2>
       <div class="tariffs">
         <button class="tariff-btn active" data-tariff="0.1579">
           Heures creuses
@@ -284,7 +303,7 @@
     </section>
 
     <section class="card">
-      <h2>Résultat</h2>
+      <h2>Résultats</h2>
       <div class="results">
         <div class="result">
           <div class="caption">Énergie à ajouter</div>
