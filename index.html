@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#f3f4f6" />
+  <meta name="theme-color" content="#f4f7fb" />
   <title>Recharge VE</title>
   <style>
     :root {
-      --bg: #f3f4f6;
+      --bg: #f4f7fb;
       --card: #ffffff;
       --text: #111827;
       --muted: #6b7280;
-      --accent: #16a34a;
-      --accent-soft: #dcfce7;
-      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --border: #dbe4f0;
       --warning: #b91c1c;
       --shadow: 0 4px 14px rgba(0, 0, 0, .04);
     }
@@ -174,7 +174,7 @@
     .tariff-btn.active {
       background: var(--accent-soft);
       border-color: var(--accent);
-      color: #166534;
+      color: #1d4ed8;
     }
 
     .custom-wrap {
@@ -190,7 +190,7 @@
 
     .result {
       min-width: 0;
-      background: #f9fafb;
+      background: #f8fafc;
       border-radius: 13px;
       padding: 9px 4px;
       text-align: center;
@@ -222,6 +222,118 @@
       color: var(--warning);
       font-weight: 600;
       font-size: .82rem;
+    }
+
+    .chart-card {
+      padding-bottom: 8px;
+    }
+
+    .chart-card h2 {
+      margin-bottom: 2px;
+    }
+
+    .chart-wrap {
+      width: 100%;
+      height: 156px;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+      touch-action: pan-y;
+      cursor: crosshair;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .chart-grid {
+      stroke: #dbe4f0;
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .chart-threshold {
+      stroke: #f59e0b;
+      stroke-width: 1.2;
+      stroke-dasharray: 4 4;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .chart-area {
+      fill: var(--accent-soft);
+      opacity: .72;
+    }
+
+    .chart-line {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .chart-dot {
+      fill: white;
+      stroke: var(--accent);
+      stroke-width: 2.5;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .chart-text {
+      fill: var(--muted);
+      font-size: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .chart-text-strong {
+      fill: var(--text);
+      font-size: 10px;
+      font-weight: 700;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .chart-scrubber {
+      pointer-events: none;
+    }
+
+    .chart-scrubber-line {
+      stroke: #64748b;
+      stroke-width: 1.2;
+      stroke-dasharray: 3 3;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .chart-scrubber-dot {
+      fill: var(--accent);
+      stroke: #ffffff;
+      stroke-width: 2.5;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .chart-tooltip-bg {
+      fill: #0f172a;
+      opacity: .95;
+    }
+
+    .chart-tooltip-title,
+    .chart-tooltip-sub {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chart-tooltip-title {
+      fill: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .chart-tooltip-sub {
+      fill: #cbd5e1;
+      font-size: 9.5px;
+      font-weight: 600;
     }
 
     .modal {
@@ -271,7 +383,7 @@
       height: 36px;
       border: 0;
       border-radius: 50%;
-      background: #f3f4f6;
+      background: #eef3f8;
       cursor: pointer;
       font-size: 1.15rem;
       line-height: 1;
@@ -287,7 +399,7 @@
 
     .duration-result span {
       display: block;
-      color: #166534;
+      color: #1d4ed8;
       font-size: .78rem;
       font-weight: 700;
     }
@@ -326,6 +438,7 @@
       .slider-block { margin-bottom: 6px; }
       select, input[type="number"], input[type="time"] { min-height: 39px; }
       .result { padding-block: 7px; }
+      .chart-wrap { height: 132px; }
     }
 
     @media (max-width: 640px) {
@@ -444,6 +557,29 @@
         </div>
       </div>
     </section>
+
+    <section class="card chart-card">
+      <h2>
+        <span>Courbe de charge</span>
+        <span class="meta" id="chartMeta">20 → 80 %</span>
+      </h2>
+      <div class="chart-wrap">
+        <svg class="chart-svg" id="chargeChart" viewBox="0 0 400 156" role="img" aria-label="Courbe du niveau de batterie en fonction du temps">
+          <g id="chartGrid"></g>
+          <path class="chart-area" id="chartArea"></path>
+          <polyline class="chart-line" id="chartLine" points=""></polyline>
+          <g id="chartDots"></g>
+          <g id="chartLabels"></g>
+          <g id="chartScrubber" class="chart-scrubber" visibility="hidden">
+            <line id="chartScrubberLine" class="chart-scrubber-line"></line>
+            <circle id="chartScrubberDot" class="chart-scrubber-dot" r="5"></circle>
+            <rect id="chartTooltipBg" class="chart-tooltip-bg" width="146" height="40" rx="8" ry="8"></rect>
+            <text id="chartTooltipTitle" class="chart-tooltip-title"></text>
+            <text id="chartTooltipSub" class="chart-tooltip-sub"></text>
+          </g>
+        </svg>
+      </div>
+    </section>
   </main>
 
   <div class="modal" id="durationModal" role="dialog" aria-modal="true" aria-labelledby="durationTitle">
@@ -492,6 +628,19 @@
     const endTimeResult = document.getElementById("endTimeResult");
     const costResult = document.getElementById("costResult");
     const rangeError = document.getElementById("rangeError");
+    const chartMeta = document.getElementById("chartMeta");
+    const chartGrid = document.getElementById("chartGrid");
+    const chartArea = document.getElementById("chartArea");
+    const chartLine = document.getElementById("chartLine");
+    const chartDots = document.getElementById("chartDots");
+    const chartLabels = document.getElementById("chartLabels");
+    const chargeChart = document.getElementById("chargeChart");
+    const chartScrubber = document.getElementById("chartScrubber");
+    const chartScrubberLine = document.getElementById("chartScrubberLine");
+    const chartScrubberDot = document.getElementById("chartScrubberDot");
+    const chartTooltipBg = document.getElementById("chartTooltipBg");
+    const chartTooltipTitle = document.getElementById("chartTooltipTitle");
+    const chartTooltipSub = document.getElementById("chartTooltipSub");
 
     const durationModal = document.getElementById("durationModal");
     const durationOpen = document.getElementById("durationOpen");
@@ -501,6 +650,8 @@
     const durationResult = document.getElementById("durationResult");
 
     let selectedTariff = 0.1579;
+    let chartPlotState = null;
+    let activeChartPointer = null;
 
     function fr(value, decimals = 2) {
       return value.toLocaleString("fr-FR", {
@@ -602,6 +753,187 @@
       return hours;
     }
 
+    function chargingSocAtHours(startSoc, endSoc, chargingPower, elapsedHours) {
+      const totalHours = chargingTimeHours(startSoc, endSoc, chargingPower);
+      if (totalHours <= 0 || endSoc <= startSoc) return startSoc;
+
+      const t = Math.min(Math.max(elapsedHours, 0), totalHours);
+
+      /*
+        Courbe exponentielle sur TOUTE la recharge :
+
+          SOC(tau) = 100 - (100 - SOC0) * exp(-0,03 * tau)
+
+        Le coefficient 0,03 s'applique au temps de modele tau. Pour conserver la duree
+        physique calculee avec la batterie de 77 kWh et la puissance selectionnee, tau est
+        recale sur [0 ; totalHours]. La forme reste donc exponentielle, y compris en AC.
+
+        100 % etant une asymptote, le calcul interne vise 99,5 % puis le dernier point est
+        affiche a 100 % lorsque l'utilisateur demande 100 %.
+      */
+      const modelEnd = endSoc >= 100 ? DISPLAYED_FULL_SOC : endSoc;
+      const remainingAtStart = Math.max(1e-6, 100 - startSoc);
+      const remainingAtEnd = Math.max(1e-6, 100 - modelEnd);
+
+      const totalTau = Math.log(remainingAtStart / remainingAtEnd) / EXP_K;
+      const tau = totalTau * (t / totalHours);
+      const soc = 100 - remainingAtStart * Math.exp(-EXP_K * tau);
+
+      if (t >= totalHours) return endSoc;
+      return Math.min(endSoc, Math.max(startSoc, soc));
+    }
+
+    function svgElement(name, attrs = {}, text = "") {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+      Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+      if (text) el.textContent = text;
+      return el;
+    }
+
+    function hideChartScrubber() {
+      chartScrubber.setAttribute("visibility", "hidden");
+    }
+
+    function showChartScrubberAt(clientX) {
+      if (!chartPlotState) return;
+
+      const rect = chargeChart.getBoundingClientRect();
+      if (!(rect.width > 0)) return;
+
+      const {
+        W, left, top, plotW, plotH, baseY,
+        startSoc, endSoc, chargingPower, totalHours
+      } = chartPlotState;
+
+      const svgX = (clientX - rect.left) * W / rect.width;
+      const x = Math.min(left + plotW, Math.max(left, svgX));
+      const ratio = (x - left) / plotW;
+      const elapsedHours = totalHours * ratio;
+      const soc = chargingSocAtHours(startSoc, endSoc, chargingPower, elapsedHours);
+      const y = top + (100 - soc) / 100 * plotH;
+
+      const startMinutes = timeToMinutes(chargeStartTime.value);
+      const clock = startMinutes === null
+        ? "--:--"
+        : minutesToClock(startMinutes + elapsedHours * 60);
+
+      chartScrubberLine.setAttribute("x1", x);
+      chartScrubberLine.setAttribute("x2", x);
+      chartScrubberLine.setAttribute("y1", top);
+      chartScrubberLine.setAttribute("y2", baseY);
+
+      chartScrubberDot.setAttribute("cx", x);
+      chartScrubberDot.setAttribute("cy", y);
+
+      const bubbleW = 146;
+      const bubbleH = 40;
+      let bubbleX = x - bubbleW / 2;
+      bubbleX = Math.max(left + 2, Math.min(left + plotW - bubbleW - 2, bubbleX));
+
+      let bubbleY = y - bubbleH - 9;
+      if (bubbleY < top + 1) bubbleY = y + 9;
+      bubbleY = Math.min(baseY - bubbleH - 2, bubbleY);
+
+      chartTooltipBg.setAttribute("x", bubbleX);
+      chartTooltipBg.setAttribute("y", bubbleY);
+      chartTooltipTitle.setAttribute("x", bubbleX + 9);
+      chartTooltipTitle.setAttribute("y", bubbleY + 15);
+      chartTooltipSub.setAttribute("x", bubbleX + 9);
+      chartTooltipSub.setAttribute("y", bubbleY + 31);
+
+      chartTooltipTitle.textContent = `${fr(soc, 1)} % · ${clock}`;
+      chartTooltipSub.textContent = `${formatDurationMinutes(elapsedHours * 60, true)} écoulé`;
+      chartScrubber.setAttribute("visibility", "visible");
+    }
+
+    function updateChargeChart(startSoc, endSoc, chargingPower, totalHours) {
+      const W = 400;
+      const H = 156;
+      const left = 34;
+      const right = 9;
+      const top = 8;
+      const bottom = 24;
+      const plotW = W - left - right;
+      const plotH = H - top - bottom;
+      const baseY = top + plotH;
+
+      chartGrid.replaceChildren();
+      chartDots.replaceChildren();
+      chartLabels.replaceChildren();
+      hideChartScrubber();
+      chartMeta.textContent = `${startSoc} → ${endSoc} % · exp`;
+
+      if (!(totalHours > 0) || endSoc <= startSoc) {
+        chartPlotState = null;
+        chartLine.setAttribute("points", "");
+        chartArea.setAttribute("d", "");
+        return;
+      }
+
+      chartPlotState = {
+        W, H, left, right, top, bottom, plotW, plotH, baseY,
+        startSoc, endSoc, chargingPower, totalHours
+      };
+
+      const xFor = hours => left + (hours / totalHours) * plotW;
+      const yFor = soc => top + (100 - soc) / 100 * plotH;
+
+      // Grille SOC 0 / 50 / 100 %.
+      [0, 50, 100].forEach(soc => {
+        const y = yFor(soc);
+        chartGrid.appendChild(svgElement("line", {
+          x1: left, y1: y, x2: left + plotW, y2: y, class: "chart-grid"
+        }));
+        chartLabels.appendChild(svgElement("text", {
+          x: left - 5, y: y + 3.5, "text-anchor": "end", class: "chart-text"
+        }, `${soc}%`));
+      });
+
+
+      const samples = 72;
+      const points = [];
+      for (let i = 0; i <= samples; i++) {
+        const elapsed = totalHours * i / samples;
+        const soc = chargingSocAtHours(startSoc, endSoc, chargingPower, elapsed);
+        points.push([xFor(elapsed), yFor(soc)]);
+      }
+
+      chartLine.setAttribute("points", points.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" "));
+
+      const first = points[0];
+      const last = points[points.length - 1];
+      const areaPath = [
+        `M ${first[0].toFixed(2)} ${baseY.toFixed(2)}`,
+        `L ${first[0].toFixed(2)} ${first[1].toFixed(2)}`,
+        ...points.slice(1).map(([x, y]) => `L ${x.toFixed(2)} ${y.toFixed(2)}`),
+        `L ${last[0].toFixed(2)} ${baseY.toFixed(2)}`,
+        "Z"
+      ].join(" ");
+      chartArea.setAttribute("d", areaPath);
+
+      chartDots.appendChild(svgElement("circle", {
+        cx: first[0], cy: first[1], r: 4, class: "chart-dot"
+      }));
+      chartDots.appendChild(svgElement("circle", {
+        cx: last[0], cy: last[1], r: 4, class: "chart-dot"
+      }));
+
+      chartLabels.appendChild(svgElement("text", {
+        x: left, y: H - 5, "text-anchor": "start", class: "chart-text"
+      }, "0"));
+      chartLabels.appendChild(svgElement("text", {
+        x: left + plotW, y: H - 5, "text-anchor": "end", class: "chart-text-strong"
+      }, formatDurationMinutes(totalHours * 60, true)));
+
+      // SOC de départ et de fin au voisinage des points pour une lecture immédiate.
+      chartLabels.appendChild(svgElement("text", {
+        x: first[0] + 7, y: Math.max(top + 10, first[1] - 7), "text-anchor": "start", class: "chart-text-strong"
+      }, `${startSoc}%`));
+      chartLabels.appendChild(svgElement("text", {
+        x: last[0] - 7, y: Math.max(top + 10, last[1] - 7), "text-anchor": "end", class: "chart-text-strong"
+      }, `${endSoc}%`));
+    }
+
     function setDefaultStartTime() {
       const now = new Date();
       let total = now.getHours() * 60 + now.getMinutes();
@@ -627,6 +959,7 @@
         timeResult.textContent = "—";
         endTimeResult.textContent = "—";
         costResult.textContent = "—";
+        updateChargeChart(start, end, chargingPower, 0);
         return;
       }
 
@@ -642,6 +975,7 @@
       timeResult.textContent = formatDurationMinutes(timeMinutes, true);
       costResult.textContent = `${fr(cost, 2)} €`;
       endTimeResult.textContent = startMinutes === null ? "—" : minutesToClock(startMinutes + timeMinutes);
+      updateChargeChart(start, end, chargingPower, timeHours);
     }
 
     function calculateClockDuration() {
@@ -688,6 +1022,39 @@
         customWrap.style.display = selectedTariff === "custom" ? "block" : "none";
         calculate();
       });
+    });
+
+    chargeChart.addEventListener("pointerdown", event => {
+      if (!chartPlotState) return;
+      activeChartPointer = event.pointerId;
+      showChartScrubberAt(event.clientX);
+    });
+
+    chargeChart.addEventListener("pointermove", event => {
+      if (event.pointerType === "mouse" || event.pointerId === activeChartPointer) {
+        showChartScrubberAt(event.clientX);
+      }
+    });
+
+    chargeChart.addEventListener("pointerenter", event => {
+      if (event.pointerType === "mouse") showChartScrubberAt(event.clientX);
+    });
+
+    chargeChart.addEventListener("pointerleave", event => {
+      if (event.pointerType === "mouse" && activeChartPointer === null) {
+        hideChartScrubber();
+      }
+    });
+
+    window.addEventListener("pointerup", event => {
+      if (event.pointerId === activeChartPointer) activeChartPointer = null;
+    });
+
+    window.addEventListener("pointercancel", event => {
+      if (event.pointerId === activeChartPointer) {
+        activeChartPointer = null;
+        hideChartScrubber();
+      }
     });
 
     durationOpen.addEventListener("click", openDurationModal);
