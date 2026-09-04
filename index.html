@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#111827" />
-  <title>Calculateur de recharge VE</title>
+  <meta name="theme-color" content="#f3f4f6" />
+  <title>Recharge VE</title>
   <style>
     :root {
       --bg: #f3f4f6;
@@ -15,6 +15,7 @@
       --accent-soft: #dcfce7;
       --border: #e5e7eb;
       --warning: #b91c1c;
+      --shadow: 0 4px 14px rgba(0, 0, 0, .04);
     }
 
     * { box-sizing: border-box; }
@@ -27,71 +28,90 @@
       padding: 8px;
     }
 
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
     .app {
       width: min(430px, 100%);
       margin: 0 auto;
     }
 
-    .hero {
-      background: linear-gradient(135deg, #111827, #1f2937);
-      color: white;
-      border-radius: 18px;
-      padding: 14px 16px;
-      margin-bottom: 4px;
-      box-shadow: 0 12px 28px rgba(0,0,0,.12);
-    }
-
-    .hero h1 {
-      margin: 0 0 6px;
-      font-size: 1.25rem;
-    }
-
-    .hero p {
-      margin: 0;
-      opacity: .8;
-    }
-
-    .battery {
-      display: inline-flex;
-      margin-top: 8px;
+    .topbar {
+      min-height: 44px;
+      display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.1);
+      justify-content: space-between;
+      gap: 10px;
+      padding: 2px 4px 6px;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 1.12rem;
+      letter-spacing: -.015em;
+    }
+
+    .tool-btn {
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      border-radius: 11px;
+      min-height: 36px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: var(--shadow);
     }
 
     .card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 9px 10px;
-      margin-bottom: 4px;
-      box-shadow: 0 4px 14px rgba(0,0,0,.04);
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      box-shadow: var(--shadow);
     }
 
     .card h2 {
-      margin: 0 0 10px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0 0 9px;
       font-size: 1rem;
     }
 
-    .row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 16px;
-      align-items: center;
-      margin-bottom: 18px;
+    .meta {
+      color: var(--muted);
+      font-size: .75rem;
+      font-weight: 600;
     }
 
-    .row:last-child { margin-bottom: 0; }
-
     .label {
-      font-weight: 600;
+      font-weight: 650;
     }
 
     .value {
       font-variant-numeric: tabular-nums;
-      font-weight: 700;
+      font-weight: 750;
+    }
+
+    .slider-block {
+      margin-bottom: 9px;
+    }
+
+    .slider-block:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .slider-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 3px;
     }
 
     input[type="range"] {
@@ -99,25 +119,27 @@
       accent-color: var(--accent);
     }
 
-    .slider-block {
-      margin-bottom: 10px;
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
 
-    .slider-block:last-child {
-      margin-bottom: 0;
-    }
-
-    .slider-head {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
+    .field-label {
+      display: block;
+      color: var(--muted);
+      font-size: .75rem;
+      font-weight: 700;
+      margin: 0 0 5px 2px;
     }
 
     select,
-    input[type="number"] {
+    input[type="number"],
+    input[type="time"] {
       width: 100%;
+      min-height: 43px;
       font-size: 1rem;
-      padding: 9px 10px;
+      padding: 8px 10px;
       border: 1px solid var(--border);
       border-radius: 12px;
       background: white;
@@ -134,16 +156,19 @@
       border: 1px solid var(--border);
       background: white;
       border-radius: 14px;
-      padding: 8px 6px;
+      padding: 8px 5px;
       cursor: pointer;
-      font-weight: 700;
+      font-weight: 750;
+      min-width: 0;
     }
 
     .tariff-btn small {
       display: block;
-      margin-top: 4px;
+      margin-top: 3px;
       color: var(--muted);
+      font-size: .7rem;
       font-weight: 500;
+      white-space: nowrap;
     }
 
     .tariff-btn.active {
@@ -153,33 +178,38 @@
     }
 
     .custom-wrap {
-      margin-top: 6px;
+      margin-top: 7px;
       display: none;
     }
 
     .results {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
     }
 
     .result {
+      min-width: 0;
       background: #f9fafb;
-      border-radius: 16px;
-      padding: 10px;
+      border-radius: 13px;
+      padding: 9px 4px;
       text-align: center;
-    }
-
-    .result .big {
-      font-size: 1.05rem;
-      font-weight: 800;
-      margin-top: 6px;
-      font-variant-numeric: tabular-nums;
     }
 
     .result .caption {
       color: var(--muted);
-      font-size: .78rem;
+      font-size: .69rem;
+      line-height: 1.1;
+      min-height: 1.55em;
+    }
+
+    .result .big {
+      margin-top: 5px;
+      font-size: .93rem;
+      line-height: 1.08;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
     }
 
     .result.highlight {
@@ -191,56 +221,134 @@
       margin-top: 6px;
       color: var(--warning);
       font-weight: 600;
-      font-size: .92rem;
+      font-size: .82rem;
     }
 
-    .note {
-      color: var(--muted);
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      background: rgba(17, 24, 39, .36);
+      padding: 12px;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .sheet {
+      width: min(430px, 100%);
+      background: white;
+      border-radius: 20px;
+      padding: 14px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .22);
+      animation: sheetIn .18s ease-out;
+    }
+
+    @keyframes sheetIn {
+      from { transform: translateY(14px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .sheet-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .sheet-head h2 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .close-btn {
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 50%;
+      background: #f3f4f6;
+      cursor: pointer;
+      font-size: 1.15rem;
+      line-height: 1;
+    }
+
+    .duration-result {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      background: var(--accent-soft);
       text-align: center;
+    }
+
+    .duration-result span {
+      display: block;
+      color: #166534;
+      font-size: .78rem;
+      font-weight: 700;
+    }
+
+    .duration-result strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 1.3rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sheet-note {
+      margin: 8px 2px 0;
+      color: var(--muted);
       font-size: .72rem;
-      line-height: 1.25;
-      padding: 0 8px 8px;
+      line-height: 1.3;
+      text-align: center;
+    }
+
+    @media (max-width: 380px) {
+      .topbar h1 { font-size: 1.02rem; }
+      .tool-btn { padding-inline: 8px; }
+      .card { padding-inline: 10px; }
+      .tariff-btn { font-size: .74rem; }
+      .tariff-btn small { font-size: .64rem; }
+      .result .caption { font-size: .64rem; }
+      .result .big { font-size: .84rem; }
+    }
+
+    @media (max-height: 720px) {
+      body { padding-top: max(4px, env(safe-area-inset-top)); }
+      .topbar { min-height: 38px; padding-bottom: 4px; }
+      .tool-btn { min-height: 33px; padding-block: 5px; }
+      .card { padding-block: 8px; margin-bottom: 4px; }
+      .card h2 { margin-bottom: 7px; }
+      .slider-block { margin-bottom: 6px; }
+      select, input[type="number"], input[type="time"] { min-height: 39px; }
+      .result { padding-block: 7px; }
     }
 
     @media (max-width: 640px) {
       body {
-        padding: max(6px, env(safe-area-inset-top)) 6px max(6px, env(safe-area-inset-bottom));
+        padding-left: max(6px, env(safe-area-inset-left));
+        padding-right: max(6px, env(safe-area-inset-right));
+        padding-bottom: max(6px, env(safe-area-inset-bottom));
       }
-      .hero { padding: 12px 14px; border-radius: 16px; }
-      .hero h1 { font-size: 1.15rem; }
-      .hero p { font-size: .8rem; }
-      .battery { font-size: .82rem; }
-      .tariffs { grid-template-columns: repeat(3, 1fr); }
-      .tariff-btn { font-size: .78rem; }
-      .tariff-btn small { font-size: .68rem; }
-      .results { grid-template-columns: repeat(3, 1fr); }
-      .result { text-align: center; }
-      .card { padding: 10px 12px; }
-      .note { font-size: .68rem; }
-    }
-
-    @media (max-height: 740px) {
-      .hero p { display: none; }
-      .note { display: none; }
-      .hero { padding: 10px 12px; }
-      .card { padding: 9px 10px; margin-bottom: 6px; }
-      .card h2 { margin-bottom: 8px; }
-      .slider-block { margin-bottom: 8px; }
-      .result { padding: 8px 5px; }
-      .result .big { font-size: .98rem; }
     }
   </style>
 </head>
 <body>
   <main class="app">
-    <section class="hero">
-      <h1>⚡ Calculateur de recharge</h1>
-      <p>Temps et coût de recharge</p>
-      <div class="battery">🔋 Batterie : <strong>77 kWh</strong></div>
-    </section>
+    <header class="topbar">
+      <h1>⚡ Recharge VE</h1>
+      <button class="tool-btn" id="durationOpen" type="button">⏱ Durée</button>
+    </header>
 
     <section class="card">
-      <h2>Batterie</h2>
+      <h2>
+        <span>Batterie</span>
+        <span class="meta">77 kWh</span>
+      </h2>
 
       <div class="slider-block">
         <div class="slider-head">
@@ -262,43 +370,53 @@
     </section>
 
     <section class="card">
-      <h2>Puissance</h2>
-      <select id="power">
-        <option value="2.3">2,3 kW</option>
-        <option value="3.7">3,7 kW</option>
-        <option value="4.5">4,5 kW</option>
-        <option value="5">5 kW</option>
-        <option value="5.5">5,5 kW</option>
-        <option value="6" selected>6 kW</option>
-        <option value="7.4">7,4 kW</option>
-        <option value="11">11 kW</option>
-        <option value="22">22 kW</option>
-        <option value="50">50 kW</option>
-        <option value="150">150 kW</option>
-      </select>
+      <h2>Recharge</h2>
+      <div class="controls-grid">
+        <div>
+          <label class="field-label" for="power">Puissance</label>
+          <select id="power">
+            <option value="2.3">2,3 kW</option>
+            <option value="3.7">3,7 kW</option>
+            <option value="4.5">4,5 kW</option>
+            <option value="5">5 kW</option>
+            <option value="5.5">5,5 kW</option>
+            <option value="6" selected>6 kW</option>
+            <option value="7.4">7,4 kW</option>
+            <option value="11">11 kW</option>
+            <option value="22">22 kW</option>
+            <option value="50">50 kW</option>
+            <option value="150">150 kW</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="field-label" for="chargeStartTime">Départ de charge</label>
+          <input id="chargeStartTime" type="time" step="60" />
+        </div>
+      </div>
     </section>
 
     <section class="card">
       <h2>Tarif</h2>
       <div class="tariffs">
-        <button class="tariff-btn active" data-tariff="0.1579">
+        <button class="tariff-btn active" type="button" data-tariff="0.1579">
           Heures creuses
           <small>0,1579 €/kWh</small>
         </button>
 
-        <button class="tariff-btn" data-tariff="0.2035">
+        <button class="tariff-btn" type="button" data-tariff="0.2035">
           Heures pleines
           <small>0,2035 €/kWh</small>
         </button>
 
-        <button class="tariff-btn" data-tariff="custom">
+        <button class="tariff-btn" type="button" data-tariff="custom">
           Autre prix
           <small>Tarif personnalisé</small>
         </button>
       </div>
 
       <div class="custom-wrap" id="customWrap">
-        <input id="customPrice" type="number" step="0.0001" min="0" value="0.1579" placeholder="Prix en €/kWh" />
+        <input id="customPrice" type="number" step="0.0001" min="0" value="0.1579" inputmode="decimal" placeholder="Prix en €/kWh" />
       </div>
     </section>
 
@@ -306,43 +424,81 @@
       <h2>Résultats</h2>
       <div class="results">
         <div class="result">
-          <div class="caption">Énergie à ajouter</div>
+          <div class="caption">Énergie</div>
           <div class="big" id="energyResult">46,2 kWh</div>
         </div>
 
         <div class="result">
-          <div class="caption">Temps de recharge</div>
-          <div class="big" id="timeResult">7 h 42 min</div>
+          <div class="caption">Durée</div>
+          <div class="big" id="timeResult">7 h 42</div>
+        </div>
+
+        <div class="result">
+          <div class="caption">Fin</div>
+          <div class="big" id="endTimeResult">—</div>
         </div>
 
         <div class="result highlight">
-          <div class="caption">Prix estimé</div>
+          <div class="caption">Prix</div>
           <div class="big" id="costResult">7,30 €</div>
         </div>
       </div>
     </section>
-
-    <div class="note">
-      Calcul théorique basé sur une batterie de 77 kWh et une puissance de charge constante.
-      Les pertes électriques et la réduction éventuelle de puissance en fin de charge ne sont pas incluses.
-    </div>
   </main>
+
+  <div class="modal" id="durationModal" role="dialog" aria-modal="true" aria-labelledby="durationTitle">
+    <section class="sheet">
+      <div class="sheet-head">
+        <h2 id="durationTitle">Calculer une durée</h2>
+        <button class="close-btn" id="durationClose" type="button" aria-label="Fermer">×</button>
+      </div>
+
+      <div class="controls-grid">
+        <div>
+          <label class="field-label" for="durationStart">Heure de début</label>
+          <input id="durationStart" type="time" step="60" value="22:00" />
+        </div>
+        <div>
+          <label class="field-label" for="durationEnd">Heure de fin</label>
+          <input id="durationEnd" type="time" step="60" value="06:00" />
+        </div>
+      </div>
+
+      <div class="duration-result">
+        <span>Durée</span>
+        <strong id="durationResult">8 h</strong>
+      </div>
+      <p class="sheet-note">Si l'heure de fin est antérieure à l'heure de début, elle est considérée comme étant le lendemain.</p>
+    </section>
+  </div>
 
   <script>
     const BATTERY = 77;
+    const EXP_K = 0.03;
+    const DC_TAPER_START = 80;
+    const DISPLAYED_FULL_SOC = 99.5;
 
     const startLevel = document.getElementById("startLevel");
     const endLevel = document.getElementById("endLevel");
     const startValue = document.getElementById("startValue");
     const endValue = document.getElementById("endValue");
     const power = document.getElementById("power");
+    const chargeStartTime = document.getElementById("chargeStartTime");
     const tariffButtons = document.querySelectorAll(".tariff-btn");
     const customWrap = document.getElementById("customWrap");
     const customPrice = document.getElementById("customPrice");
     const energyResult = document.getElementById("energyResult");
     const timeResult = document.getElementById("timeResult");
+    const endTimeResult = document.getElementById("endTimeResult");
     const costResult = document.getElementById("costResult");
     const rangeError = document.getElementById("rangeError");
+
+    const durationModal = document.getElementById("durationModal");
+    const durationOpen = document.getElementById("durationOpen");
+    const durationClose = document.getElementById("durationClose");
+    const durationStart = document.getElementById("durationStart");
+    const durationEnd = document.getElementById("durationEnd");
+    const durationResult = document.getElementById("durationResult");
 
     let selectedTariff = 0.1579;
 
@@ -360,14 +516,100 @@
       return Number(selectedTariff);
     }
 
-    function formatTime(hoursDecimal) {
-      const totalMinutes = Math.round(hoursDecimal * 60);
-      const h = Math.floor(totalMinutes / 60);
-      const m = totalMinutes % 60;
+    function formatDurationMinutes(totalMinutes, compact = false) {
+      const minutes = Math.max(0, Math.round(totalMinutes));
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
 
       if (h === 0) return `${m} min`;
       if (m === 0) return `${h} h`;
+      if (compact) return `${h} h ${String(m).padStart(2, "0")}`;
       return `${h} h ${String(m).padStart(2, "0")} min`;
+    }
+
+    function timeToMinutes(value) {
+      if (!value || !value.includes(":")) return null;
+      const [h, m] = value.split(":").map(Number);
+      if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+      return h * 60 + m;
+    }
+
+    function minutesToClock(totalMinutes) {
+      const rounded = Math.round(totalMinutes);
+      const days = Math.floor(rounded / 1440);
+      const minuteOfDay = ((rounded % 1440) + 1440) % 1440;
+      const h = Math.floor(minuteOfDay / 60);
+      const m = minuteOfDay % 60;
+      const clock = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      return days > 0 ? `${clock} +${days}j` : clock;
+    }
+
+    /*
+      Modèle de temps de charge :
+
+      - Jusqu'à 22 kW (charge AC), on conserve le calcul à puissance constante : E / P.
+      - En charge DC (> 22 kW), on conserve la puissance constante jusqu'à 80 %, puis
+        on applique une décroissance exponentielle de type :
+
+          SOC(τ) = 100 - (100 - SOC0) × exp(-0,03 × τ)
+
+        qui est la généralisation de SOC(τ)=100×(1-exp(-0,03τ)) pour un SOC initial SOC0.
+        τ est un temps normalisé. Sa conversion en heures est calibrée avec la capacité
+        BATTERY et la puissance choisie, car 0,03 seul ne peut pas représenter toutes les
+        voitures et toutes les bornes.
+
+      - 100 % affiché est assimilé à 99,5 % dans la loi exponentielle, puisque 100 % est
+        une asymptote mathématique de ce modèle.
+    */
+    function chargingTimeHours(startSoc, endSoc, chargingPower) {
+      const energy = BATTERY * (endSoc - startSoc) / 100;
+
+      // En AC, le modèle à puissance constante reste le plus pertinent pour cette app.
+      if (chargingPower <= 22 || endSoc <= DC_TAPER_START) {
+        return energy / chargingPower;
+      }
+
+      let hours = 0;
+
+      // Phase à puissance constante jusqu'à 80 %.
+      if (startSoc < DC_TAPER_START) {
+        const linearEnd = Math.min(endSoc, DC_TAPER_START);
+        const linearEnergy = BATTERY * (linearEnd - startSoc) / 100;
+        hours += linearEnergy / chargingPower;
+      }
+
+      // Phase exponentielle au-delà de 80 %.
+      if (endSoc > DC_TAPER_START) {
+        const expStart = Math.max(startSoc, DC_TAPER_START);
+        const expEnd = endSoc >= 100 ? DISPLAYED_FULL_SOC : endSoc;
+
+        if (expEnd > expStart) {
+          const remainingAtStart = 100 - expStart;
+          const remainingAtEnd = 100 - expEnd;
+
+          // Δτ issu de SOC(τ) = 100 - A·e^(-0,03τ)
+          const deltaTau = Math.log(remainingAtStart / remainingAtEnd) / EXP_K;
+
+          // Calibration de τ vers des heures afin que la pente à 80 % corresponde
+          // à la puissance de charge sélectionnée.
+          const normalizedUnitsPerHour = chargingPower /
+            (EXP_K * BATTERY * (1 - DC_TAPER_START / 100));
+
+          hours += deltaTau / normalizedUnitsPerHour;
+        }
+      }
+
+      return hours;
+    }
+
+    function setDefaultStartTime() {
+      const now = new Date();
+      let total = now.getHours() * 60 + now.getMinutes();
+      total = Math.ceil(total / 5) * 5;
+      total %= 1440;
+      const h = Math.floor(total / 60);
+      const m = total % 60;
+      chargeStartTime.value = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     }
 
     function calculate() {
@@ -383,6 +625,7 @@
         rangeError.style.display = "block";
         energyResult.textContent = "—";
         timeResult.textContent = "—";
+        endTimeResult.textContent = "—";
         costResult.textContent = "—";
         return;
       }
@@ -390,17 +633,51 @@
       rangeError.style.display = "none";
 
       const energy = BATTERY * (end - start) / 100;
-      const time = energy / chargingPower;
+      const timeHours = chargingTimeHours(start, end, chargingPower);
+      const timeMinutes = timeHours * 60;
       const cost = energy * tariff;
+      const startMinutes = timeToMinutes(chargeStartTime.value);
 
       energyResult.textContent = `${fr(energy, 1)} kWh`;
-      timeResult.textContent = formatTime(time);
+      timeResult.textContent = formatDurationMinutes(timeMinutes, true);
       costResult.textContent = `${fr(cost, 2)} €`;
+      endTimeResult.textContent = startMinutes === null ? "—" : minutesToClock(startMinutes + timeMinutes);
+    }
+
+    function calculateClockDuration() {
+      const start = timeToMinutes(durationStart.value);
+      const end = timeToMinutes(durationEnd.value);
+
+      if (start === null || end === null) {
+        durationResult.textContent = "—";
+        return;
+      }
+
+      let delta = end - start;
+      if (delta < 0) delta += 1440;
+      durationResult.textContent = formatDurationMinutes(delta);
+    }
+
+    function openDurationModal() {
+      durationStart.value = chargeStartTime.value || durationStart.value;
+
+      const mainEnd = endTimeResult.textContent.match(/^(\d{2}:\d{2})/);
+      if (mainEnd) durationEnd.value = mainEnd[1];
+
+      calculateClockDuration();
+      durationModal.classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeDurationModal() {
+      durationModal.classList.remove("open");
+      document.body.style.overflow = "";
     }
 
     startLevel.addEventListener("input", calculate);
     endLevel.addEventListener("input", calculate);
     power.addEventListener("change", calculate);
+    chargeStartTime.addEventListener("input", calculate);
     customPrice.addEventListener("input", calculate);
 
     tariffButtons.forEach(btn => {
@@ -413,6 +690,22 @@
       });
     });
 
+    durationOpen.addEventListener("click", openDurationModal);
+    durationClose.addEventListener("click", closeDurationModal);
+    durationStart.addEventListener("input", calculateClockDuration);
+    durationEnd.addEventListener("input", calculateClockDuration);
+
+    durationModal.addEventListener("click", event => {
+      if (event.target === durationModal) closeDurationModal();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && durationModal.classList.contains("open")) {
+        closeDurationModal();
+      }
+    });
+
+    setDefaultStartTime();
     calculate();
   </script>
 </body>
