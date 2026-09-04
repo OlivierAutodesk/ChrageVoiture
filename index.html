@@ -349,7 +349,7 @@
       inset: 0;
       z-index: 50;
       display: none;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
       background: rgba(17, 24, 39, .36);
       padding: 12px;
@@ -369,8 +369,8 @@
     }
 
     @keyframes sheetIn {
-      from { transform: translateY(14px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      from { transform: scale(.98); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
 
     .sheet-head {
@@ -512,7 +512,7 @@
 
         <div>
           <label class="field-label" for="chargeStartTime">Départ de charge</label>
-          <input id="chargeStartTime" type="time" step="60" />
+          <input id="chargeStartTime" type="time" step="60" value="23:45" />
         </div>
       </div>
     </section>
@@ -520,24 +520,24 @@
     <section class="card">
       <h2>Tarif</h2>
       <div class="tariffs">
-        <button class="tariff-btn active" type="button" data-tariff="0.1579">
+        <button class="tariff-btn active" type="button" data-tariff="0.1589">
           Heures creuses
-          <small>0,1579 €/kWh</small>
+          <small>0,1589 €/kWh</small>
         </button>
 
-        <button class="tariff-btn" type="button" data-tariff="0.2035">
+        <button class="tariff-btn" type="button" data-tariff="0.2142">
           Heures pleines
-          <small>0,2035 €/kWh</small>
+          <small>0,2142 €/kWh</small>
         </button>
 
         <button class="tariff-btn" type="button" data-tariff="custom">
           Autre prix
-          <small>Tarif personnalisé</small>
+          <small>0,2376 €/kWh</small>
         </button>
       </div>
 
       <div class="custom-wrap" id="customWrap">
-        <input id="customPrice" type="number" step="0.0001" min="0" value="0.1579" inputmode="decimal" placeholder="Prix en €/kWh" />
+        <input id="customPrice" type="number" step="0.0001" min="0" value="0.2376" inputmode="decimal" placeholder="Prix en €/kWh" />
       </div>
     </section>
 
@@ -618,9 +618,10 @@
 
   <script>
     const BATTERY = 77;
-    const EXP_K = 0.03;
     const DC_TAPER_START = 80;
-    const DISPLAYED_FULL_SOC = 99.5;
+    const DC_END_POWER_FACTOR = 0.20;
+    const DC_TAPER_SLOPE = (1 - DC_END_POWER_FACTOR) / (100 - DC_TAPER_START);
+    const DC_POWERS = new Set([50, 150]);
 
     const startLevel = document.getElementById("startLevel");
     const endLevel = document.getElementById("endLevel");
@@ -657,7 +658,7 @@
     const durationEnd = document.getElementById("durationEnd");
     const durationResult = document.getElementById("durationResult");
 
-    let selectedTariff = 0.1579;
+    let selectedTariff = 0.1589;
     let chartPlotState = null;
     let activeChartPointer = null;
 
@@ -704,58 +705,65 @@
     }
 
     /*
-      Modèle de temps de charge :
+      Modèle de charge utilisé par l'application :
 
-      - Jusqu'à 22 kW (charge AC), on conserve le calcul à puissance constante : E / P.
-      - En charge DC (> 22 kW), on conserve la puissance constante jusqu'à 80 %, puis
-        on applique une décroissance exponentielle de type :
+      1) Puissances AC (2,3 à 22 kW dans cette interface)
+         La puissance est supposée constante. La conservation de l'énergie donne :
 
-          SOC(τ) = 100 - (100 - SOC0) × exp(-0,03 × τ)
+           t = E / P
+           SOC(t) = SOC0 + 100 × P × t / BATTERY
 
-        qui est la généralisation de SOC(τ)=100×(1-exp(-0,03τ)) pour un SOC initial SOC0.
-        τ est un temps normalisé. Sa conversion en heures est calibrée avec la capacité
-        BATTERY et la puissance choisie, car 0,03 seul ne peut pas représenter toutes les
-        voitures et toutes les bornes.
+         La courbe SOC/temps est donc linéaire dans ce modèle simplifié.
 
-      - 100 % affiché est assimilé à 99,5 % dans la loi exponentielle, puisque 100 % est
-        une asymptote mathématique de ce modèle.
+      2) Puissances DC (50 et 150 kW dans cette interface)
+         Jusqu'à 80 %, la puissance sélectionnée est supposée disponible. Au-delà de 80 %,
+         l'application utilise une courbe P(SOC) générique de tapering : la puissance décroît
+         linéairement de 100 % de la puissance sélectionnée à 80 % de SOC jusqu'à 20 % de
+         cette puissance à 100 % de SOC. Il s'agit explicitement d'une estimation générique,
+         et non de la courbe constructeur d'un véhicule précis.
+
+         Le temps est calculé en intégrant dE / P(SOC). Le graphique et le curseur utilisent
+         exactement le même modèle, ce qui garantit leur cohérence avec la durée affichée.
     */
-    function chargingTimeHours(startSoc, endSoc, chargingPower) {
-      const energy = BATTERY * (endSoc - startSoc) / 100;
+    function isDcCharge(chargingPower) {
+      return DC_POWERS.has(Number(chargingPower));
+    }
 
-      // En AC, le modèle à puissance constante reste le plus pertinent pour cette app.
-      if (chargingPower <= 22 || endSoc <= DC_TAPER_START) {
+    function dcPowerFactorAtSoc(soc) {
+      if (soc <= DC_TAPER_START) return 1;
+      const factor = 1 - DC_TAPER_SLOPE * (soc - DC_TAPER_START);
+      return Math.max(DC_END_POWER_FACTOR, factor);
+    }
+
+    function chargingTimeHours(startSoc, endSoc, chargingPower) {
+      if (endSoc <= startSoc || chargingPower <= 0) return 0;
+
+      // AC : puissance constante sur toute la plage de SOC.
+      if (!isDcCharge(chargingPower)) {
+        const energy = BATTERY * (endSoc - startSoc) / 100;
         return energy / chargingPower;
       }
 
       let hours = 0;
 
-      // Phase à puissance constante jusqu'à 80 %.
+      // DC, phase à puissance constante jusqu'à 80 %.
       if (startSoc < DC_TAPER_START) {
         const linearEnd = Math.min(endSoc, DC_TAPER_START);
-        const linearEnergy = BATTERY * (linearEnd - startSoc) / 100;
-        hours += linearEnergy / chargingPower;
+        if (linearEnd > startSoc) {
+          const linearEnergy = BATTERY * (linearEnd - startSoc) / 100;
+          hours += linearEnergy / chargingPower;
+        }
       }
 
-      // Phase exponentielle au-delà de 80 %.
+      // DC, tapering générique au-delà de 80 %.
       if (endSoc > DC_TAPER_START) {
-        const expStart = Math.max(startSoc, DC_TAPER_START);
-        const expEnd = endSoc >= 100 ? DISPLAYED_FULL_SOC : endSoc;
+        const taperStart = Math.max(startSoc, DC_TAPER_START);
+        const factorStart = dcPowerFactorAtSoc(taperStart);
+        const factorEnd = dcPowerFactorAtSoc(endSoc);
 
-        if (expEnd > expStart) {
-          const remainingAtStart = 100 - expStart;
-          const remainingAtEnd = 100 - expEnd;
-
-          // Δτ issu de SOC(τ) = 100 - A·e^(-0,03τ)
-          const deltaTau = Math.log(remainingAtStart / remainingAtEnd) / EXP_K;
-
-          // Calibration de τ vers des heures afin que la pente à 80 % corresponde
-          // à la puissance de charge sélectionnée.
-          const normalizedUnitsPerHour = chargingPower /
-            (EXP_K * BATTERY * (1 - DC_TAPER_START / 100));
-
-          hours += deltaTau / normalizedUnitsPerHour;
-        }
+        // Intégrale exacte de dSOC / P(SOC) pour une puissance qui décroît linéairement.
+        hours += BATTERY / (100 * chargingPower * DC_TAPER_SLOPE) *
+          Math.log(factorStart / factorEnd);
       }
 
       return hours;
@@ -766,28 +774,35 @@
       if (totalHours <= 0 || endSoc <= startSoc) return startSoc;
 
       const t = Math.min(Math.max(elapsedHours, 0), totalHours);
-
-      /*
-        Courbe exponentielle sur TOUTE la recharge :
-
-          SOC(tau) = 100 - (100 - SOC0) * exp(-0,03 * tau)
-
-        Le coefficient 0,03 s'applique au temps de modele tau. Pour conserver la duree
-        physique calculee avec la batterie de 77 kWh et la puissance selectionnee, tau est
-        recale sur [0 ; totalHours]. La forme reste donc exponentielle, y compris en AC.
-
-        100 % etant une asymptote, le calcul interne vise 99,5 % puis le dernier point est
-        affiche a 100 % lorsque l'utilisateur demande 100 %.
-      */
-      const modelEnd = endSoc >= 100 ? DISPLAYED_FULL_SOC : endSoc;
-      const remainingAtStart = Math.max(1e-6, 100 - startSoc);
-      const remainingAtEnd = Math.max(1e-6, 100 - modelEnd);
-
-      const totalTau = Math.log(remainingAtStart / remainingAtEnd) / EXP_K;
-      const tau = totalTau * (t / totalHours);
-      const soc = 100 - remainingAtStart * Math.exp(-EXP_K * tau);
-
       if (t >= totalHours) return endSoc;
+
+      // AC : inversion directe de t = E/P.
+      if (!isDcCharge(chargingPower)) {
+        const soc = startSoc + 100 * chargingPower * t / BATTERY;
+        return Math.min(endSoc, Math.max(startSoc, soc));
+      }
+
+      let remainingTime = t;
+
+      // DC : première phase linéaire jusqu'à 80 %, si elle fait partie de la recharge.
+      if (startSoc < DC_TAPER_START) {
+        const linearEnd = Math.min(endSoc, DC_TAPER_START);
+        const linearHours = BATTERY * (linearEnd - startSoc) / (100 * chargingPower);
+
+        if (remainingTime <= linearHours || endSoc <= DC_TAPER_START) {
+          const soc = startSoc + 100 * chargingPower * remainingTime / BATTERY;
+          return Math.min(endSoc, Math.max(startSoc, soc));
+        }
+        remainingTime -= linearHours;
+      }
+
+      // DC : inversion analytique de l'intégrale de la phase de tapering.
+      const taperStart = Math.max(startSoc, DC_TAPER_START);
+      const factorStart = dcPowerFactorAtSoc(taperStart);
+      const decay = 100 * chargingPower * DC_TAPER_SLOPE / BATTERY;
+      const factor = factorStart * Math.exp(-decay * remainingTime);
+      const soc = DC_TAPER_START + (1 - factor) / DC_TAPER_SLOPE;
+
       return Math.min(endSoc, Math.max(startSoc, soc));
     }
 
@@ -869,7 +884,7 @@
       chartDots.replaceChildren();
       chartLabels.replaceChildren();
       hideChartScrubber();
-      chartMeta.textContent = `${startSoc} → ${endSoc} % · exp`;
+      chartMeta.textContent = `${startSoc} → ${endSoc} % · ${isDcCharge(chargingPower) ? "DC estimée" : "AC · P cste"}`;
 
       if (!(totalHours > 0) || endSoc <= startSoc) {
         chartPlotState = null;
@@ -896,6 +911,16 @@
           x: left - 5, y: y + 3.5, "text-anchor": "end", class: "chart-text"
         }, `${soc}%`));
       });
+
+      if (isDcCharge(chargingPower) && startSoc < DC_TAPER_START && endSoc > DC_TAPER_START) {
+        const y80 = yFor(DC_TAPER_START);
+        chartGrid.appendChild(svgElement("line", {
+          x1: left, y1: y80, x2: left + plotW, y2: y80, class: "chart-threshold"
+        }));
+        chartLabels.appendChild(svgElement("text", {
+          x: left + plotW - 2, y: y80 - 4, "text-anchor": "end", class: "chart-text"
+        }, "taper 80%"));
+      }
 
 
       const samples = 72;
@@ -943,13 +968,7 @@
     }
 
     function setDefaultStartTime() {
-      const now = new Date();
-      let total = now.getHours() * 60 + now.getMinutes();
-      total = Math.ceil(total / 5) * 5;
-      total %= 1440;
-      const h = Math.floor(total / 60);
-      const m = total % 60;
-      chargeStartTime.value = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      chargeStartTime.value = "23:45";
     }
 
     function calculate() {
